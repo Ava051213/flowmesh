@@ -119,3 +119,55 @@ func (g *Graph) Validate() error {
 	}
 	return nil
 }
+
+func (g *Graph) TopoSort() ([]string, error) {
+	if err := g.Validate(); err != nil { return nil, err }
+
+	if g.Nodes == nil {
+		return nil, nil
+	}
+
+	indegree := make(map[string]int, len(g.Nodes))
+	out := make(map[string][]string, len(g.Nodes))
+
+	for id := range g.Nodes {
+		indegree[id] = 0
+	}
+
+	for id, n := range g.Nodes {
+		for _, depID := range n.DependsOn {
+			indegree[id]++
+			out[depID] = append(out[depID], id)
+		}
+	}
+
+	queue := make([]string, 0, len(g.Nodes))
+	for id, d := range indegree {
+		if d == 0 {
+			queue = append(queue, id)
+		}
+	}
+
+	order := make([]string, 0, len(g.Nodes))
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+
+		order = append(order, id)
+
+		for _, to := range out[id] {
+			indegree[to]--
+			if indegree[to] == 0 {
+				queue = append(queue, to)
+			}
+		}
+	}
+
+	if len(order) != len(g.Nodes) {
+		return nil, &CycleDetectedError{Cycle: []string{}}
+	}
+	return order, nil
+
+	return nil, fmt.Errorf("not implemented")
+}
+

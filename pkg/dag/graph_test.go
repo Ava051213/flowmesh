@@ -132,3 +132,79 @@ func TestGraph_Validate_Cycle(t *testing.T) {
 		t.Fatalf("expected *CycleDetectedError, got %T: %v", err, err)
 	}
 }
+
+func TestGraph_TopoSort_LinearChain(t *testing.T) {
+	g := NewGraph()
+	g.AddNode(&Node{ID: "A"})
+	g.AddNode(&Node{ID: "B", DependsOn: []string{"A"}})
+	g.AddNode(&Node{ID: "C", DependsOn: []string{"B"}})
+
+	order, err := g.TopoSort()
+	if err != nil {
+		t.Fatalf("expected no error, got %T: %v", err, err)
+	}
+	if len(order) != 3 {
+		t.Fatalf("expected 3 nodes, got %d: %v", len(order), order)
+	}
+
+	pos := map[string]int{}
+	for i, id := range order {
+		pos[id] = i
+	}
+
+	if pos["A"] >= pos["B"] || pos["B"] >= pos["C"] {
+		t.Fatalf("expected A before B before C, got %v", order)
+	}
+}
+
+func TestGraph_TopoSort_Branching(t *testing.T) {
+	g := NewGraph()
+	g.AddNode(&Node{ID: "A"})
+	g.AddNode(&Node{ID: "B", DependsOn: []string{"A"}})
+	g.AddNode(&Node{ID: "C", DependsOn: []string{"A"}})
+	g.AddNode(&Node{ID: "D", DependsOn: []string{"B", "C"}})
+
+	order, err := g.TopoSort()
+	if err != nil {
+		t.Fatalf("expected no error, got %T: %v", err, err)
+	}
+	if len(order) != 4 {
+		t.Fatalf("expected 4 nodes, got %d: %v", len(order), order)
+	}
+
+	pos := map[string]int{}
+	for i, id := range order {
+		pos[id] = i
+	}
+	
+	if pos["A"] >= pos["B"] {
+		t.Fatalf("expected A before B, got %v", order)
+	}
+	if pos["A"] >= pos["C"] {
+		t.Fatalf("expected A before C, got %v", order)
+	}
+	if pos["B"] >= pos["D"] || pos["C"] >= pos["D"] {
+		t.Fatalf("expected B and C before D, got %v", order)
+	}
+}
+
+func TestGraph_TopoSort_Cycle(t *testing.T) {
+	g := NewGraph()
+	g.AddNode(&Node{ID: "A", DependsOn: []string{"B"}})
+	g.AddNode(&Node{ID: "B", DependsOn: []string{"A"}})
+	
+	_, err := g.TopoSort()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if _, ok := err.(*CycleDetectedError); !ok {
+		t.Fatalf("expected *CycleDetectedError, got %T: %v", err, err)
+	}
+}
+
+
+
+
+
+
+
