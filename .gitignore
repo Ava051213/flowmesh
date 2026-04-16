@@ -1,0 +1,26 @@
+# If you prefer to keep the repo ultra-minimal, you can trim this file later.
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.test
+*.out
+
+# Dependency directory (rare with Go modules, but common with older setups)
+vendor/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
